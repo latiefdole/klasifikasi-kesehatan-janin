@@ -65,6 +65,7 @@ Data dapat diakses dari [UCI Machine Learning Repository](https://archive.ics.uc
 Visualisasi data atau Exploratory Data Analysis (EDA) untuk memahami distribusi dan pola data.
 
 ![alt text](https://raw.githubusercontent.com/latiefdole/klasifikasi-kesehatan-janin/refs/heads/main/eda.png)
+![alt text](https://raw.githubusercontent.com/latiefdole/klasifikasi-kesehatan-janin/refs/heads/main/eda2.png)
 
 ## Data Preparation
 
@@ -78,27 +79,89 @@ Proses data preparation meliputi:
 
 ## Modeling
 
-Pada bagian ini, dilakukan proses pemodelan dengan menggunakan algoritma machine learning. Model yang diusulkan meliputi algoritma seperti **Random Forest**, **Support Vector Machine (SVM)**, dan **k-Nearest Neighbors (k-NN)**. Parameter yang digunakan pada proses pemodelan dijelaskan, termasuk hyperparameter tuning yang dilakukan untuk meningkatkan performa model.
+Dalam tahapan modeling ini, kami melakukan eksperimen dengan beberapa algoritma klasifikasi untuk mengevaluasi kinerja mereka dalam memprediksi target variabel. Dua algoritma yang digunakan adalah **Decision Tree** dan **Random Forest**, yang diterapkan pada dataset dengan teknik penyeimbangan kelas menggunakan **SMOTE** (Synthetic Minority Over-sampling Technique) dan **ADASYN** (Adaptive Synthetic Sampling).
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menjelaskan kelebihan dan kekurangan dari setiap algoritma yang digunakan.
-- Jika menggunakan hyperparameter tuning, jelaskan prosesnya dan bagaimana hal tersebut meningkatkan performa model.
+### 1. Algoritma yang Digunakan
+
+- **Decision Tree**: 
+  - Decision Tree adalah algoritma yang membangun model prediktif berbentuk pohon dengan memecah dataset menjadi subset yang lebih kecil berdasarkan fitur yang paling relevan. Keunggulan dari Decision Tree adalah kemampuannya untuk memberikan interpretasi yang jelas tentang keputusan yang diambil, serta kecepatan dalam pelatihan dan prediksi. Namun, Decision Tree juga rentan terhadap overfitting, terutama pada dataset yang kecil atau tidak seimbang.
+
+- **Random Forest**: 
+  - Random Forest adalah ensemble learning method yang menggabungkan beberapa Decision Trees untuk meningkatkan akurasi dan mengurangi overfitting. Setiap pohon dalam Random Forest dilatih pada subset acak dari data, dan keputusan akhir ditentukan dengan mayoritas suara. Ini membuat Random Forest lebih stabil dan mampu menangani dataset dengan lebih baik.
+
+### 2. Metode Penyeimbangan Kelas
+
+- **SMOTE**: 
+  - SMOTE meningkatkan kelas minoritas dengan membuat contoh sintetis di antara titik-titik data yang sudah ada. Ini membantu meningkatkan jumlah contoh dalam kelas minoritas, sehingga model tidak bias terhadap kelas mayoritas.
+
+- **ADASYN**: 
+  - ADASYN adalah pengembangan dari SMOTE yang tidak hanya menciptakan data sintetis tetapi juga mempertimbangkan kesulitan dari kelas minoritas. Ini berfokus pada contoh yang lebih sulit untuk diklasifikasikan, sehingga meningkatkan representasi dari titik data yang lebih kompleks dalam kelas minoritas.
+
+### 3. Evaluasi Model
+
+Kami mengevaluasi model berdasarkan beberapa metrik berikut:
+
+- **Akurasi**: Persentase dari prediksi yang benar dibandingkan dengan total prediksi.
+- **Precision**: Proporsi dari prediksi positif yang benar dari semua prediksi positif.
+- **Recall**: Proporsi dari prediksi positif yang benar dari semua data positif yang sebenarnya.
+- **F1 Score**: Rata-rata harmonis dari precision dan recall, memberikan gambaran yang lebih baik tentang kinerja model pada dataset yang tidak seimbang.
+
+### 4. Hasil Model
+
+Setelah menjalankan model dengan dataset asli dan teknik penyeimbangan (SMOTE dan ADASYN), kami memperoleh hasil sebagai berikut:
+
+- **Tanpa Penyeimbangan**:
+  - Decision Tree menunjukkan akurasi 0.9017 dengan precision 0.9069, recall 0.9017, dan F1 score 0.9037.
+  - Random Forest memiliki performa lebih baik dengan akurasi 0.9302, precision 0.9288, recall 0.9302, dan F1 score 0.9293.
+
+- **Dengan SMOTE**:
+  - Decision Tree memiliki akurasi 0.9218, precision 0.9225, recall 0.9218, dan F1 score 0.9217.
+  - Random Forest menunjukkan kinerja yang lebih baik dengan akurasi 0.9483, precision 0.9484, recall 0.9483, dan F1 score 0.9480.
+
+- **Dengan ADASYN**:
+  - Decision Tree memiliki akurasi 0.8758, precision 0.8753, recall 0.8758, dan F1 score 0.8750.
+  - Random Forest menunjukkan hasil yang lebih baik dengan akurasi 0.9385, precision 0.9384, recall 0.9385, dan F1 score 0.9382.
+
+### 5. Diskusi Teknis
+
+Dari hasil yang diperoleh, dapat dilihat bahwa Random Forest selalu mengungguli Decision Tree dalam hal akurasi dan metrik evaluasi lainnya. Ini menunjukkan bahwa pendekatan ensemble lebih efektif dalam mengatasi masalah klasifikasi, terutama pada dataset yang mungkin tidak seimbang.
+
+Penggunaan SMOTE dan ADASYN memberikan hasil yang beragam; dalam beberapa kasus, peningkatan signifikan terlihat pada akurasi dan metrik lainnya. Namun, penerapan teknik penyeimbangan juga menunjukkan bahwa model dapat lebih baik atau bahkan lebih buruk tergantung pada algoritma dan bagaimana mereka beradaptasi dengan data yang diberikan.
+
+Akhirnya, pemilihan algoritma dan metode penyeimbangan kelas sangat penting untuk meningkatkan kinerja model, terutama dalam situasi di mana data tidak seimbang.
+
 
 ## Evaluation
 
-Pada bagian ini, metrik evaluasi yang digunakan adalah **akurasi**, **precision**, **recall**, dan **F1 score**. Penilaian dilakukan berdasarkan kemampuan model dalam mengklasifikasikan data CTG ke dalam kategori Normal, Suspect, atau Patologis.
+Setelah melatih model menggunakan dataset pelatihan dan melakukan prediksi pada dataset pengujian, kami melanjutkan dengan langkah-langkah evaluasi untuk menganalisis kinerja setiap model. Proses evaluasi ini mencakup beberapa langkah kunci:
 
-Hasil evaluasi menunjukkan bahwa algoritma **Random Forest** memberikan hasil terbaik dengan akurasi **X%**, precision **Y%**, dan F1 score **Z%**.
+### Metrik Evaluasi:
 
-**Rubrik/Kriteria Tambahan (Opsional)**:
-- Menjelaskan formula metrik evaluasi dan bagaimana metrik tersebut bekerja.
-- Menyertakan perbandingan hasil dari beberapa model untuk menunjukkan model terbaik.
+- **Classification Report**: Menggunakan `classification_report` dari scikit-learn, kami dapat memperoleh metrik seperti precision, recall, dan F1 score untuk setiap kelas. Ini memberikan gambaran menyeluruh tentang kinerja model di setiap kategori target.
+  
+- **Confusion Matrix**: Kami menggunakan matriks kebingungan untuk visualisasi prediksi model dibandingkan dengan label sebenarnya. Ini membantu dalam memahami di mana model melakukan kesalahan, apakah lebih banyak prediksi positif yang salah (False Positives) atau prediksi negatif yang salah (False Negatives).
+  
+- **ROC AUC Score**: Kami menghitung ROC AUC untuk menganalisis kemampuan model dalam membedakan antara kelas positif dan negatif. Ini dilakukan dengan menghitung False Positive Rate dan True Positive Rate untuk setiap kelas, dan kemudian menghitung area di bawah kurva ROC (AUC).
+
+### Visualisasi:
+
+- **Plot Confusion Matrix**: Kami menggunakan heatmap dari seaborn untuk memvisualisasikan matriks kebingungan, sehingga memberikan pemahaman yang lebih baik tentang prediksi model.
+  
+- **Plot ROC Curve**: ROC curve membantu dalam menganalisis trade-off antara sensitivity dan specificity untuk setiap kelas.
+
+### Hasil Evaluasi:
+
+Setiap metrik yang dihasilkan akan dicatat dan dibandingkan antar model untuk menentukan model mana yang memberikan kinerja terbaik.
+
 
 ## Conclusion
 
-Studi ini memiliki implikasi penting dalam upaya menurunkan angka kematian ibu dan anak, terutama di negara-negara dengan sumber daya terbatas. Dengan pemanfaatan teknologi yang terjangkau seperti CTG, diharapkan para tenaga medis dapat lebih cepat dan akurat dalam mendeteksi komplikasi kehamilan, sehingga intervensi medis dapat dilakukan lebih awal. Hasil penelitian ini juga berpotensi untuk memberikan kontribusi dalam pengembangan protokol klinis yang lebih baik dalam pemantauan kehamilan.
+Studi ini memiliki implikasi penting dalam upaya menurunkan angka kematian ibu dan anak, terutama di negara-negara dengan sumber daya terbatas. Dengan pemanfaatan teknologi yang terjangkau seperti Cardiotocogram (CTG), diharapkan para tenaga medis dapat lebih cepat dan akurat dalam mendeteksi komplikasi kehamilan, sehingga intervensi medis dapat dilakukan lebih awal. 
 
-Cardiotocogram menyediakan informasi yang penting dan mudah diakses mengenai kesehatan janin, yang dapat membantu mengurangi angka kematian ibu dan anak. Dengan pemanfaatan teknologi ini, serta dukungan dari analisis berbasis data, diharapkan proses deteksi dini masalah kesehatan janin dapat lebih ditingkatkan
+Hasil penelitian ini juga berpotensi untuk memberikan kontribusi dalam pengembangan protokol klinis yang lebih baik dalam pemantauan kehamilan. Cardiotocogram menyediakan informasi yang penting dan mudah diakses mengenai kesehatan janin, yang dapat membantu mengurangi angka kematian ibu dan anak. 
+
+Dengan pemanfaatan teknologi ini, serta dukungan dari analisis berbasis data, diharapkan proses deteksi dini masalah kesehatan janin dapat lebih ditingkatkan. Melalui pendekatan berbasis data dan teknologi, kita dapat meningkatkan hasil kesehatan bagi ibu dan anak, serta mewujudkan sistem kesehatan yang lebih efisien dan responsif.
+
 
 
 
