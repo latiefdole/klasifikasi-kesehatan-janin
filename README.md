@@ -64,7 +64,7 @@ Data dapat diakses dari [UCI Machine Learning Repository](https://archive.ics.uc
 
 Visualisasi data atau Exploratory Data Analysis (EDA) untuk memahami distribusi dan pola data.
 
-![alt text]((https://github.com/latiefdole/klasifikasi-kesehatan-janin/blob/main/eda.png?raw=true))
+![alt text](https://raw.githubusercontent.com/latiefdole/klasifikasi-kesehatan-janin/refs/heads/main/eda.png)
 
 ## Data Preparation
 
