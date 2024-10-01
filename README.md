@@ -10,9 +10,20 @@
    - [Deskripsi Variabel](#variabel-variabel)
 4. [Data Visualization](#data-visualization)
 5. [Data Preparation](#data-preparation)
-6. [Modeling](#modeling)
-7. [Evaluation](#evaluation)
-8. [Conclusion](#conclusion)
+6. [Feature Selection](#feature-selection)
+   - [Menghitung Variance Inflation Factor (VIF)](#menghitung-variance-inflation-factor-vif)
+   - [Visualisasi VIF](#visualisasi-vif)
+   - [Menghapus Fitur dengan VIF Tinggi](#menghapus-fitur-dengan-vif-tinggi)
+   - [Membagi Dataset Setelah Feature Selection](#membagi-dataset-setelah-feature-selection)
+7. [Modeling](#modeling)
+   - [Pemilihan Algoritma](#pemilihan-algoritma)
+   - [Pelatihan Model](#pelatihan-model)
+   - [Hyperparameter Tuning](#hyperparameter-tuning)
+   - [Evaluasi Model](#evaluasi-model)
+   - [Perbandingan Model](#perbandingan-model)
+8. [Evaluation](#evaluation)
+9. [Conclusion](#conclusion)
+
 
 ## Domain Proyek
 
