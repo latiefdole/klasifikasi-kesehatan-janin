@@ -45,9 +45,9 @@ Referensi: [Sisporto 2.0: A program for automated analysis of cardiotocograms
 ## Data Understanding
 
 Dataset ini terdiri dari 2.126 rekaman hasil pemeriksaan Cardiotocogram yang telah diklasifikasikan oleh ahli menjadi tiga kategori yaitu:
-- Normal: Kategori ini mencakup hasil CTG yang menunjukkan aktivitas janin yang sehat tanpa adanya indikasi masalah.
-- Mencurigakan (Suspect): Kategori ini mencakup hasil CTG yang menunjukkan beberapa anomali yang mungkin memerlukan pemeriksaan lebih lanjut.
-- Patologis: Kategori ini mencakup hasil yang menunjukkan adanya masalah serius pada janin yang membutuhkan intervensi medis segera.
+- __Normal__: Kategori ini mencakup hasil CTG yang menunjukkan aktivitas janin yang sehat tanpa adanya indikasi masalah.
+- __Mencurigakan (Suspect)__: Kategori ini mencakup hasil CTG yang menunjukkan beberapa anomali yang mungkin memerlukan pemeriksaan lebih lanjut.
+- __Patologis__: Kategori ini mencakup hasil yang menunjukkan adanya masalah serius pada janin yang membutuhkan intervensi medis segera.
 
 Data yang dikumpulkan mencakup berbagai parameter dari hasil CTG, seperti detak jantung janin, variabilitas detak jantung, percepatan dan deselerasi detak jantung, serta pola kontraksi rahim. Analisis dilakukan dengan menggunakan teknik statistik dan pembelajaran mesin untuk memprediksi klasifikasi kondisi janin berdasarkan data tersebut.
 Data dapat diakses dari [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Cardiotocography).
@@ -69,17 +69,91 @@ Visualisasi data atau Exploratory Data Analysis (EDA) untuk memahami distribusi 
 
 ## Data Preparation
 
-Proses data preparation meliputi:
-- Mengatasi missing values
-- Normalisasi atau standardisasi data
-- Pembagian data menjadi data latih dan data uji
+Sebelum melatih model, langkah pertama adalah mempersiapkan data. Proses ini mencakup beberapa tahapan:
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menjelaskan setiap tahapan dan alasan mengapa dilakukan.
+1. __Mengonversi Tipe Data__: Saya mengonversi kolom `fetal_health` menjadi tipe string agar sesuai dengan format yang dibutuhkan untuk analisis lebih lanjut.
+    ```python
+    df['fetal_health'] = df['fetal_health'].astype(str)
+    ```
+
+2. __Memisahkan Fitur dan Target__: Saya memisahkan dataset menjadi fitur (X) dan label target (y).
+
+    ```python
+    X = df.drop('fetal_health', axis=1)
+    y = df['fetal_health']
+    ```
+
+3. __Membagi Dataset__: Dataset kemudian dibagi menjadi set pelatihan dan pengujian menggunakan `train_test_split`.
+
+    ```python
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    ```
+
+4. __Normalisasi Data__: Mengingat bahwa sebagian besar kolom tidak terdistribusi normal, saya menerapkan `MinMaxScaler` untuk menormalkan data.
+    ```python
+    from sklearn.preprocessing import MinMaxScaler
+    mm = MinMaxScaler()
+    X_train_mm = mm.fit_transform(X_train)
+    X_test_mm = mm.transform(X_test)
+    ```
+
+## Feature Selection
+
+Setelah melakukan data preparation, saya melakukan pemilihan fitur untuk memastikan bahwa hanya fitur yang relevan dan tidak berkorelasi tinggi yang digunakan dalam pemodelan. Proses ini mencakup beberapa tahapan:
+
+1. __Menghitung Variance Inflation Factor (VIF)__: VIF digunakan untuk mendeteksi multikolinearitas di antara fitur. Fitur dengan nilai VIF yang tinggi menunjukkan bahwa fitur tersebut berkorelasi dengan fitur lain, yang dapat menyebabkan masalah dalam estimasi parameter model.
+    ```python
+    from statsmodels.stats.outliers_influence import variance_inflation_factor
+    from statsmodels.tools.tools import add_constant
+
+    def calculate_vif(X):
+        X = add_constant(X)
+        vif = pd.DataFrame()
+        vif["Fitur"] = X.columns
+        vif["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+        return vif.drop(index=0) 
+    vif_df = calculate_vif(X)
+    ```
+2. __Visualisasi VIF__: Menggunakan diagram batang untuk memvisualisasikan nilai VIF dari setiap fitur, sehingga dapat dengan mudah mengidentifikasi fitur mana yang memiliki VIF tinggi.
+    ```python
+    def plot_vif(vif_df):
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x="VIF", y="Fitur", data=vif_df, palette="viridis")
+        plt.title("Variance Inflation Factor (VIF) dari fitur")
+        plt.xlabel("VIF")
+        plt.ylabel("Fitur")
+        plt.show()
+
+    # Visualisasikan VIF
+    plot_vif(vif_df)
+    ```
+3. __Menghapus Fitur dengan VIF Tinggi__: Saya menghapus fitur yang memiliki nilai VIF di atas ambang batas yang ditentukan (misalnya, 10). Ini dilakukan secara iteratif hingga tidak ada fitur dengan VIF tinggi yang tersisa.
+    ```python
+    def remove_high_vif(X, threshold=10.0):
+        while True:
+            vif = calculate_vif(X)
+            max_vif = vif['VIF'].max()
+            if max_vif > threshold:
+                feature_to_remove = vif.sort_values('VIF', ascending=False)['Fitur'].iloc[0]
+                print(f"Menghapus {feature_to_remove} dengan VIF = {max_vif}")
+                X = X.drop(columns=[feature_to_remove])
+            else:
+                break
+        return X
+
+    X_vif_adj = remove_high_vif(X, threshold=10.0)
+    ```
+4. __Membagi Dataset Setelah Feature Selection__: Setelah menghapus fitur dengan VIF tinggi, saya membagi dataset menjadi set pelatihan dan pengujian untuk model yang akan dilatih.
+    ```python
+    y = df['fetal_health']
+    X_vif_train, X_vif_test, y_train, y_test = train_test_split(X_vif_adj, y, test_size=0.33, random_state=42)
+    ```
+
+Dengan langkah-langkah di atas, pemilihan fitur telah dilakukan untuk memastikan hanya fitur yang relevan yang digunakan dalam pemodelan
 
 ## Modeling
 
-Dalam tahapan modeling ini, kami melakukan eksperimen dengan beberapa algoritma klasifikasi untuk mengevaluasi kinerja mereka dalam memprediksi target variabel. Dua algoritma yang digunakan adalah **Decision Tree** dan **Random Forest**, yang diterapkan pada dataset dengan teknik penyeimbangan kelas menggunakan **SMOTE** (Synthetic Minority Over-sampling Technique) dan **ADASYN** (Adaptive Synthetic Sampling).
+Dalam tahapan modeling ini, saya melakukan eksperimen dengan beberapa algoritma klasifikasi untuk mengevaluasi kinerja mereka dalam memprediksi target variabel. Dua algoritma yang digunakan adalah **Decision Tree** dan **Random Forest**, yang diterapkan pada dataset dengan teknik penyeimbangan kelas menggunakan **SMOTE** (Synthetic Minority Over-sampling Technique) dan **ADASYN** (Adaptive Synthetic Sampling).
 
 ### 1. Algoritma yang Digunakan
 
@@ -99,7 +173,7 @@ Dalam tahapan modeling ini, kami melakukan eksperimen dengan beberapa algoritma 
 
 ### 3. Evaluasi Model
 
-Kami mengevaluasi model berdasarkan beberapa metrik berikut:
+Saya mengevaluasi model berdasarkan beberapa metrik berikut:
 
 - **Akurasi**: Persentase dari prediksi yang benar dibandingkan dengan total prediksi.
 - **Precision**: Proporsi dari prediksi positif yang benar dari semua prediksi positif.
@@ -108,7 +182,7 @@ Kami mengevaluasi model berdasarkan beberapa metrik berikut:
 
 ### 4. Hasil Model
 
-Setelah menjalankan model dengan dataset asli dan teknik penyeimbangan (SMOTE dan ADASYN), kami memperoleh hasil sebagai berikut:
+Setelah menjalankan model dengan dataset asli dan teknik penyeimbangan (SMOTE dan ADASYN), saya memperoleh hasil sebagai berikut:
 
 - **Tanpa Penyeimbangan**:
   - Decision Tree menunjukkan akurasi 0.9017 dengan precision 0.9069, recall 0.9017, dan F1 score 0.9037.
@@ -133,25 +207,32 @@ Akhirnya, pemilihan algoritma dan metode penyeimbangan kelas sangat penting untu
 
 ## Evaluation
 
-Setelah melatih model menggunakan dataset pelatihan dan melakukan prediksi pada dataset pengujian, kami melanjutkan dengan langkah-langkah evaluasi untuk menganalisis kinerja setiap model. Proses evaluasi ini mencakup beberapa langkah kunci:
+Setelah melatih model menggunakan dataset pelatihan dan melakukan prediksi pada dataset pengujian, dapat disimpulkan bahwa Random Forest + SMOTE menunjukkan kinerja yang paling baik dengan akurasi 0.9483, precision 0.9484, recall 0.9483, dan F1 score 0.9480. Berikut matriks evaluasinya:
 
 ### Metrik Evaluasi:
 
-- **Classification Report**: Menggunakan `classification_report` dari scikit-learn, kami dapat memperoleh metrik seperti precision, recall, dan F1 score untuk setiap kelas. Ini memberikan gambaran menyeluruh tentang kinerja model di setiap kategori target.
+- **Classification Report**: Menggunakan `classification_report` dari scikit-learn, saya dapat memperoleh metrik seperti precision, recall, dan F1 score untuk setiap kelas. Ini memberikan gambaran menyeluruh tentang kinerja model di setiap kategori target.
   
-- **Confusion Matrix**: Kami menggunakan matriks kebingungan untuk visualisasi prediksi model dibandingkan dengan label sebenarnya. Ini membantu dalam memahami di mana model melakukan kesalahan, apakah lebih banyak prediksi positif yang salah (False Positives) atau prediksi negatif yang salah (False Negatives).
+  ```python
+                precision    recall  f1-score   support
+
+            1.0       0.93      0.95      0.94       554
+            2.0       0.93      0.89      0.91       553
+            3.0       0.94      0.96      0.95       551
+
+        accuracy                           0.93      1658
+       macro avg       0.93      0.93      0.93      1658
+    weighted avg       0.93      0.93      0.93      1658
+  ```
+
+- **Confusion Matrix**: Saya menggunakan matriks kebingungan untuk visualisasi prediksi model dibandingkan dengan label sebenarnya. Ini membantu dalam memahami di mana model melakukan kesalahan, apakah lebih banyak prediksi positif yang salah (False Positives) atau prediksi negatif yang salah (False Negatives).
+
+    ![Confusion Matrix](https://raw.githubusercontent.com/latiefdole/klasifikasi-kesehatan-janin/refs/heads/main/CM.png)
   
-- **ROC AUC Score**: Kami menghitung ROC AUC untuk menganalisis kemampuan model dalam membedakan antara kelas positif dan negatif. Ini dilakukan dengan menghitung False Positive Rate dan True Positive Rate untuk setiap kelas, dan kemudian menghitung area di bawah kurva ROC (AUC).
+- **ROC AUC Score**: Saya menghitung ROC AUC untuk menganalisis kemampuan model dalam membedakan antara kelas positif dan negatif. Ini dilakukan dengan menghitung False Positive Rate dan True Positive Rate untuk setiap kelas, dan kemudian menghitung area di bawah kurva ROC (AUC).
+    ![ROC](https://raw.githubusercontent.com/latiefdole/klasifikasi-kesehatan-janin/refs/heads/main/ROC.png)
 
-### Visualisasi:
 
-- **Plot Confusion Matrix**: Kami menggunakan heatmap dari seaborn untuk memvisualisasikan matriks kebingungan, sehingga memberikan pemahaman yang lebih baik tentang prediksi model.
-  
-- **Plot ROC Curve**: ROC curve membantu dalam menganalisis trade-off antara sensitivity dan specificity untuk setiap kelas.
-
-### Hasil Evaluasi:
-
-Setiap metrik yang dihasilkan akan dicatat dan dibandingkan antar model untuk menentukan model mana yang memberikan kinerja terbaik.
 
 
 ## Conclusion
